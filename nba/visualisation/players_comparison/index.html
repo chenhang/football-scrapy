@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    <title>Player</title>
+    <script src="js/lib/jquery.min.js"></script>
+    <script src="js/lib/d3.v3.min.js" charset="utf-8"></script>
+    <script src="js/lib/underscore-min.js"></script>
+    <script src="js/lib/d3.parcoords.js"></script>
+    <script src="js/lib/d3.underscore.math.js"></script>
+    <script src="js/lib/d3.divgrid.js"></script>
+    <link href="css/index.css" rel="stylesheet">
+
+</head>
+<body>
+
+<div class="categories">
+    <button class="category" id="player-style">球员进攻风格</button>
+    <br>
+    <button class="category" id="shot-freq">Shoot Frequency</button>
+    <button class="category" id="play-freq">Play Types Frequency</button>
+    <button class="category" id="defender-range">Closest Defender Range shot</button>
+    <button class="category" id="defender-range-out">Closest Defender shot > 10ft.</button>
+    <button class="category" id="touch-time-range">Touch Time Range</button>
+    <button class="category" id="dribbles-range">Dribbles</button>
+    <button class="category" id="base-per-36">Base Stats Per 36 min</button>
+    <button class="category" id="base-defense">Base Defense</button>
+    <button class="category" id="rim-defense">Rim Protection</button>
+    <button class="category" id="defense-diff">Defense Plus Minus</button>
+    <button class="category" id="speed-distance">Speed & Distance</button>
+    <button class="category" id="passing">Passing</button>
+    <br>
+    <button class="category" id="transition">Transition</button>
+    <button class="category" id="isolation">Isolation</button>
+    <button class="category" id="pr-ball-handler">Pick & Roll: Ball Handler</button>
+    <button class="category" id="pr-rollman">Pick & Roll: Roll Man</button>
+    <button class="category" id="postup">Postup</button>
+    <button class="category" id="spotup">Spotup</button>
+    <button class="category" id="handoff">Handoff</button>
+    <button class="category" id="cut">Cut</button>
+    <button class="category" id="off-screen">Off Screen</button>
+    <button class="category" id="off-rebound">Off Rebound</button>
+</div>
+<br>
+<button id="keep-data">Keep</button>
+<button id="exclude-data">Exclude</button>
+<button id="reset-data">Reset</button>
+<button id="reset-highlight">Reset Highlight</button>
+<br>
+
+<div class="desc"><h2 id="title"></h2> </div>
+<div id="wrapper" class="chart"></div>
+<div id="grid"></div>
+
+
+<script type="text/javascript" src="js/index.js"></script>
+
+
+</body>
+</html>

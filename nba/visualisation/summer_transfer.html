@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Summer Transfer</title>
+    <script src="d3/d3.min.js"></script>
+    <script src="d3/sankey.js"></script>
+    <script src="d3/d3.chart.min.js"></script>
+    <script src="d3/d3.chart.sankey.min.js"></script>
+    <style>
+      body {
+        padding: 10px;
+        min-width: 600px;
+        max-width: 1200px;
+        margin: auto;
+      }
+      #chart {
+        height: 700px;
+				width: 500px;
+        font: 13px sans-serif;
+      }
+      .node rect {
+        fill-opacity: .9;
+        shape-rendering: crispEdges;
+        stroke-width: 0;
+      }
+      .node text {
+        text-shadow: 0 1px 0 #fff;
+      }
+      .link {
+        fill: none;
+        stroke: #000;
+        stroke-opacity: .2;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="chart"></div>
+
+    <script>
+      var colors = {'MIL': '#C41230', 'GSW': '#0068B3', 'MIN': '#003F70',
+			'TOR': '#C60033', 'ATL': '#E2373E', 'BOS': '#007239', 'DET': '#EC003D',
+			'NYK': '#F3571F', 'DEN': '#559FD6', 'DAL': '#0063AF', 'BKN': '#000000',
+			'POR': '#DE2032', 'ORL': '#006BB7', 'MIA': '#98002E', 'CLE': '#860038',
+			'SAS': '#BA24CA', 'CHA': '#00848E', 'UTA': '#002A5C', 'CHI': '#C60033',
+			'HOU': '#C60033', 'WAS': '#002A5B', 'LAL': '#FEA927', 'PHI': '#EC003D',
+			'MEM': '#182A48', 'LAC': '#00559A', 'SAC': '#542E91', 'OKC': '#FDBB30',
+			'PHX': '#E45F1F', 'IND': '#001D4A', 'NOP': '#002B5C', 'CHO': '#00848E',};
+			var conferencesColors = {'Eastern': '#00559A', 'Western': '#EC003D'}
+			d3.json("summer_transfers.json", function(error, data) {
+			// d3.json("demo.json", function(error, data) {
+				var json = data.all.all
+        var chart = d3.select("#chart").append("svg").chart("Sankey.Path");
+        chart
+          .name(label)
+          .colorNodes(function(name, node) {
+            return color(node, 1) || colors.fallback;
+          })
+          .colorLinks(function(link) {
+            return color(link.source, 4) || color(link.target, 1) || colors.fallback;
+          })
+          .nodeWidth(20)
+          .nodePadding(10)
+          .spread(true)
+          .iterations(0)
+          .draw(json)
+					.style('padding-top', '20px');
+        function label(node) {
+          return node.name//.replace(/\s*\(.*?\)$/, '');
+        }
+        function color(node, depth) {
+          var id = node.name//.replace(/(_score)?(_\d+)?$/, '');
+					// if (conferencesColors[node.conference]) {
+          //   return conferencesColors[node.conference];
+          // } else
+					if (colors[id]) {
+            return colors[id];
+          } else if (depth > 0 && node.targetLinks && node.targetLinks.length == 1) {
+            return color(node.targetLinks[0].source, depth-1);
+          } else {
+            return null;
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,83 @@
+/* Document styling */
+body {
+    background-color: #eee;
+    font-family: helvetica, sans-serif;
+    font-weight: 100;
+}
+
+#wrapper {
+    width: 1200px;
+    margin: 0 auto;
+    position: relative;
+}
+
+#chart {
+    position: absolute;
+    top: 110px;
+    left: 30px;
+    width: 900px;
+    /*margin: 25px auto;*/
+}
+
+#title {
+    position: absolute;
+    top: 0;
+    left: 30px;
+    font-size: 16px;
+    letter-spacing: -2px;
+    line-height: 100%;
+}
+
+#about {
+    position: absolute;
+    top: 300px;
+    left: 30px;
+    width: 200px;
+    font-size: 12px;
+}
+
+#menu {
+    position: relative;
+    top: 5px;
+    left: 30px;
+    width: 100%;
+}
+
+ul li {
+    display: inline-flex;
+    padding-right: 5px;
+}
+
+li, h1, h2 {
+    font-weight: 100;
+}
+
+h2 {
+    font-size: 11px;
+    margin: 0;
+    color: #666;
+}
+
+ul {
+    list-style: none;
+    font-size: 12px;
+    padding: 0;
+    margin-top: 3px;
+}
+
+li {
+    cursor: pointer;
+    padding-bottom: 5px;
+}
+
+li:hover {
+    color: #000;
+}
+
+li.preview {
+    font-weight: 400;
+}
+
+li.selected {
+    font-weight: bold;
+}

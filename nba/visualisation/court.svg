@@ -1,0 +1,50 @@
+<svg class='passesCourt' width="1268px" height="808px" viewBox="0 0 960 501" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+    <!-- Generator: Sketch 3.3.2 (12043) - http://www.bohemiancoding.com/sketch -->
+    <title>court</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <linearGradient x1="100%" y1="0%" x2="0%" y2="100%" id="linearGradient-1">
+            <stop stop-color="#626262" offset="31.1104911%"></stop>
+            <stop stop-color="#5D5D5D" offset="0%"></stop>
+            <stop stop-color="#474747" offset="100%"></stop>
+        </linearGradient>
+				<filter id="f3" x="-0.1" y="-0.1" width="200%" height="200%">
+      <feOffset result="offOut" in="SourceAlpha" dx="3" dy="3" />
+      <feGaussianBlur result="blurOut" in="offOut" stdDeviation="2" />
+      <feBlend in="SourceGraphic" in2="blurOut" mode="normal" />
+    </filter>
+        <rect id="path-2" x="0" y="0" width="940" height="500"></rect>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage">
+        <!-- <g id="Desktop-HD" sketch:type="MSArtboardGroup" transform="translate(-250.000000, -262.000000)">
+            <g id="court" sketch:type="MSLayerGroup" transform="translate(250.000000, 262.000000)">
+                <g id="Mask">
+                    <use stroke="#FFFFFF" stroke-width="4" fill="url(#linearGradient-1)" fill-rule="evenodd" sketch:type="MSShapeGroup" xlink:href="#path-2"></use>
+                    <use stroke="none" fill="none" xlink:href="#path-2"></use>
+                </g>
+                <path d="M935,30 L808,30 C808,30 645,60 645,250 C645,440 808,470 808,470 L933.980259,470" id="Path-1" stroke="#DD5F55" stroke-width="4" sketch:type="MSShapeGroup"></path>
+                <path d="M295,30 L168,30 C168,30 5,60 5,250 C5,440 168,470 168,470 L293.980259,470" id="Path-1-Copy" stroke="#DD5F55" stroke-width="4" sketch:type="MSShapeGroup" transform="translate(150.000000, 250.000000) scale(-1, 1) translate(-150.000000, -250.000000) "></path>
+                <g id="inside" transform="translate(0.000000, 170.000000)" stroke="#FFFFFF" stroke-width="4" sketch:type="MSShapeGroup">
+                    <rect id="Rectangle-8" fill-opacity="0.899999976" fill="#D26F42" x="0" y="0" width="190" height="160"></rect>
+                    <path d="M0,20 L190,20 L188.994709,140 L0,140 L0,20 Z" id="Rectangle-10"></path>
+                    <circle id="Oval-1" cx="190" cy="80" r="60"></circle>
+                    <path d="M38,50 L38,110" id="Path-3"></path>
+                    <path d="M54,40 C54,40 94,40 94,80 C94,120 54,120 54,120" id="Path-4"></path>
+                    <circle id="Oval-2" cx="62" cy="80" r="10"></circle>
+                </g>
+                <g id="inside-copy" transform="translate(815.000000, 250.000000) scale(-1, 1) translate(-815.000000, -250.000000) translate(690.000000, 170.000000)" stroke="#FFFFFF" stroke-width="4" sketch:type="MSShapeGroup">
+                    <rect id="Rectangle-8" fill-opacity="0.900000036" fill="#D26F42" x="0" y="0" width="190" height="160"></rect>
+                    <path d="M0,20 L190,20 L188.994709,140 L0,140 L0,20 Z" id="Rectangle-10"></path>
+                    <circle id="Oval-1" cx="190" cy="80" r="60"></circle>
+                    <path d="M38,50 L38,110" id="Path-3"></path>
+                    <path d="M54,40 C54,40 94,40 94,80 C94,120 54,120 54,120" id="Path-4"></path>
+                    <circle id="Oval-2" cx="57" cy="80" r="10"></circle>
+                </g>
+                <g id="mid" transform="translate(410.000000, 1.000000)" stroke="#FFFFFF" sketch:type="MSShapeGroup">
+                    <path d="M60,0 L60,500" id="Path-7" stroke-width="4"></path>
+                    <circle id="Oval-5" stroke-width="5" cx="60" cy="249" r="60"></circle>
+                </g>
+            </g>
+        </g> -->
+    </g>
+</svg>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dashboard</title>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no' />
+  <link rel="stylesheet" type="text/css" href="assets/lib/bootstrap/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="assets/css/keen-dashboards.css" />
+  <script src="d3/d3.min.js"></script>
+  <script src="d3/d3.tip.v0.6.3.js"></script>
+  <script src="d3/d3.rollup.v0.min.js"></script>
+  <style>
+  #tooltip {
+          position: absolute;
+          width: 150px;
+          height: auto;
+          padding: 5px;
+          background-color: white;
+  		opacity: 0.8;
+          -webkit-border-radius: 5px;
+          -moz-border-radius: 5px;
+          border-radius: 5px;
+          -webkit-box-shadow: 4px 4px 5px rgba(0, 0, 0, 0.4);
+          -moz-box-shadow: 4px 4px 5px rgba(0, 0, 0, 0.4);
+          box-shadow: 4px 4px 5px rgba(0, 0, 0, 0.4);
+          pointer-events: none;
+  }
+
+  #tooltip.hidden {
+          display: none;
+  }
+
+  #tooltip p {
+          margin: 0;
+          font-family: sans-serif;
+          font-size: 12px;
+          line-height: 16px;
+  }
+
+  .link {
+    fill: none;
+    stroke: #000;
+    stroke-opacity: .2;
+  }
+
+
+  </style>
+</head>
+<body class="application">
+
+<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#">
+        <span class="glyphicon glyphicon-chevron-left"></span>
+      </a>
+      <a class="navbar-brand" href="./">Player Play Type Trend</a>
+    </div>
+    <div class="navbar-collapse collapse">
+      <ul class="nav navbar-nav navbar-left">
+        <li><a href="#">Home</a></li>
+        <li><a href="#">Player Types</a></li>
+        <li><a href="#">Team Profile</a></li>
+        <li><a href="#">Player Profile</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="container-fluid">
+
+  <div class="row">
+    <div class="col-sm-1">
+      <div class="chart-wrapper">
+        <div class="chart-title">
+          Teams
+        </div>
+        <div class="chart-stage">
+          <input type="text" class="search-box" id="teamSearch" onkeypress="return searchBy(event)" placeholder="">
+          <div class="teamTableWrapper playerTableWrapper">
+            <table class="teamTable playerTable"></table>
+          </div>
+          </table>
+        </div>
+        <div class="chart-notes">
+          Notes
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-11">
+      <div class="chart-wrapper">
+        <div class="chart-title teamPassesTitle">
+          Team Passes: GSW
+        </div>
+        <div class="chart-stage">
+          <div class="courtWrapper"></div>
+        </div>
+        <div class="chart-notes">
+          Notes
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script type="text/javascript" src="assets/lib/jquery/dist/jquery.min.js"></script>
+<script type="text/javascript" src="assets/lib/bootstrap/dist/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="assets/lib/holderjs/holder.js"></script>
+<script>
+  Holder.add_theme("white", { background:"#fff", foreground:"#a7a7a7", size:10 });
+</script>
+
+<script type="text/javascript" src="assets/lib/keen-js/dist/keen.min.js"></script>
+<script type="text/javascript" src="assets/js/meta.js"></script>
+<script type="text/javascript" src="team_passes.js"></script>
+<script type="text/javascript">
+var teamsData, teamNames, selectTeam,
+	TABLE_HEADERS = ['Name'];
+d3.json("passes.json", function(data) {
+	teamsData = data;
+	teamNames = [];
+	Object.keys(teamsData).forEach(function(key, index) {
+		teamNames.push({id: key, nameUniq: key,  name: key })
+	});
+	selectTeam = 'GSW'
+  drawTable();
+	drawWithData(data[selectTeam].combined);
+});
+
+function drawWithData(data){
+  drawCombinedPasses(data.combined)
+}
+
+</script>
+
+</body>
+</html>

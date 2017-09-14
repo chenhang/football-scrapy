@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="description" content="D3byEX 10.5" />
+    <meta charset="utf-8">
+</head>
+<body>
+    <script src="../d3/d3.min.js"></script>
+    <script>
+        d3.json('d3-dendrogram.json', function(error, data) {
+            var width = 1600,
+                height = 1600,
+                nodeRadius = 3;
+
+            var svg = d3.select('body')
+                .append('svg')
+                .attr({
+                    width: width,
+                    height: height
+                });
+
+            var radius = width / 2 - 100;
+            var mainGroup = svg.append('g')
+                .attr("transform", "translate(" + (radius+40) + "," + (radius+30) + ")");
+
+            var cluster = d3.layout.cluster()
+                .size([360, radius - 50]);
+
+            var nodes = cluster.nodes(data);
+            var links = cluster.links(nodes);
+
+            var diagonal = d3.svg.diagonal.radial()
+                .projection(function(d) {
+                    return [
+                        d.y,
+                        d.x / 180 * Math.PI
+                    ];
+                });
+
+            mainGroup.selectAll('path')
+                .data(links)
+                .enter()
+                .append('path')
+                .attr({
+                    'd': diagonal,
+                    fill: 'none',
+                    stroke: '#ccc',
+                    'stroke-width': 2
+                });
+
+            var nodeGroups = mainGroup.selectAll("g")
+                .data(nodes)
+                .enter()
+                .append("g")
+                .attr("transform", function(d) {
+                    return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")";
+                });
+
+            nodeGroups.append("circle")
+                .attr({
+                    r: nodeRadius,
+                    fill: '#fff',
+                    stroke: 'steelblue',
+                    'stroke-width': 3
+                });
+
+            nodeGroups.append("text")
+                .attr({
+                        dy: ".31em",
+                        'text-anchor': function(d) {
+                            return d.x < 180 ? "start" : "end";
+                        },
+                        'transform': function(d) {
+                            return d.x < 180 ? "translate(8)" : "rotate(180)translate(-8)";
+                        }
+                    })
+                    .style('font', '12px sans-serif')
+                .text(function(d) {
+									if (d.children) {
+										return ''
+									} else { return d.name; }
+								});
+        });
+    </script>
+</body>
+</html>
