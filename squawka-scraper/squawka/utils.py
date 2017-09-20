@@ -100,10 +100,13 @@ class SquawkaReport:
         xpath = '/squawka/data_panel/filters/{filter_type}/time_slice'
         return self._get_elements(xpath.format(filter_type=filter_type))
 
-    def _get_elements(self, xpath):
+    def _get_elements(self, xpath, is_time_slice=True):
         elements = self.xml.xpath(xpath)
         if elements:
-            return self._parse_elements(elements)
+            if is_time_slice:
+                return self._parse_elements(elements)
+            else:
+                return self._parse_static_elements(elements)
         else:
             return None
 
@@ -122,6 +125,14 @@ class SquawkaReport:
                                  event.items() + [(cc.tag, cc.text)])
                 parsed_data.append(event)
         return parsed_data
+
+    def _parse_static_elements(self, elements):
+        parsed = [
+            dict({c.tag: c.text
+                  for c in e.getchildren()}.items() + e.attrib.items())
+            for e in elements
+        ]
+        return parsed
 
     @property
     def competition(self):
@@ -156,12 +167,12 @@ class SquawkaReport:
     def players(self):
         # TODO: Remove non-player elements
         xpath = '/squawka/data_panel/players/player'
-        return self._get_elements(xpath)
+        return self._get_elements(xpath, is_time_slice=False)
 
     @property
     def teams(self):
         xpath = '/squawka/data_panel/game/team'
-        return self._get_elements(xpath)
+        return self._get_elements(xpath, is_time_slice=False)
 
     @property
     def venue(self):
