@@ -23,7 +23,6 @@ COMPETITIONS = {
     23: 'Spanish La Liga',
     24: 'French Ligue 1',
     98: 'US Major League Soccer',
-    99: 'Portuguese Primeira Liga',
     114: 'Turkish Super Lig',
     129: 'Russian Premier League',
     199: 'Mexican Liga MX - Apertura',
@@ -54,7 +53,10 @@ TIME_SLICE_EVENTS = [
     'tackles',
     'takeons',
 ]
-
+COMPLEX_TIME_SLICE_EVENTS = [
+    'action_areas',
+    'oneonones',
+]
 ALL_STATISTICS = sorted(TIME_SLICE_EVENTS + ['players', 'teams'])
 
 logger = logging.getLogger()
@@ -74,12 +76,16 @@ class SquawkaReport:
 
     def __init__(self, path):
         self.__time_slice_events = TIME_SLICE_EVENTS
+        self.__complex_time_slice_events = COMPLEX_TIME_SLICE_EVENTS
         self.path = path
         self.xml = self.read_xml(path)
 
     # See: https://stackoverflow.com/questions/10967551/how-do-i-dynamically-create-properties-in-python
     def __getattr__(self, name):
-        if name in self.__time_slice_events:
+
+        if name in self.__complex_time_slice_events:
+            return self._parse_complex_timeslice(name)
+        elif name in self.__time_slice_events:
             return self._parse_timeslice(name)
         else:
             msg = "'{0}' object has no attribute '{1}'"
@@ -97,20 +103,26 @@ class SquawkaReport:
         return xml
 
     def _parse_timeslice(self, filter_type):
-        xpath = '/squawka/data_panel/filters/{filter_type}/time_slice'
-        return self._get_elements(xpath.format(filter_type=filter_type))
+        xpath = '/squawka/data_panel/filters/{filter_type}/time_slice/event'
+        return self._get_elements(
+            xpath.format(filter_type=filter_type), filter_type=filter_type)
 
-    def _get_elements(self, xpath, is_time_slice=True):
+    def _parse_complex_timeslice(self, filter_type):
+        xpath = '/squawka/data_panel/filters/{filter_type}/time_slice'
+        return self._get_elements(
+            xpath.format(filter_type=filter_type), filter_type=filter_type)
+
+    def _get_elements(self, xpath, filter_type=None):
         elements = self.xml.xpath(xpath)
         if elements:
-            if is_time_slice:
-                return self._parse_elements(elements)
+            if filter_type in self.__complex_time_slice_events:
+                return self._parse_complex_elements(elements)
             else:
-                return self._parse_static_elements(elements)
+                return self._parse_elements(elements)
         else:
             return None
 
-    def _parse_elements(self, elements):
+    def _parse_complex_elements(self, elements):
         parsed_data = []
         for e in elements:
             time_slice = dict(('_'.join([e.tag, k]), v)
@@ -126,7 +138,7 @@ class SquawkaReport:
                 parsed_data.append(event)
         return parsed_data
 
-    def _parse_static_elements(self, elements):
+    def _parse_elements(self, elements):
         parsed = [
             dict({c.tag: c.text
                   for c in e.getchildren()}.items() + e.attrib.items())
@@ -167,12 +179,12 @@ class SquawkaReport:
     def players(self):
         # TODO: Remove non-player elements
         xpath = '/squawka/data_panel/players/player'
-        return self._get_elements(xpath, is_time_slice=False)
+        return self._get_elements(xpath)
 
     @property
     def teams(self):
         xpath = '/squawka/data_panel/game/team'
-        return self._get_elements(xpath, is_time_slice=False)
+        return self._get_elements(xpath)
 
     @property
     def venue(self):
@@ -291,9 +303,6 @@ def convert_export(df):
     """
 
     def parse_indicator(s, indicator):
-        print('ind', indicator)
-        print('orgin', s)
-        print(s == indicator)
         return s.notnull() & (s == indicator)  # Nulls are interpreted as False
 
     convert_cols = {
