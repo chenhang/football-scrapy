@@ -17,6 +17,14 @@ def parse
 			end
 		end
 	end
+
+	data['players'] = data['players'].map {|d| [d['id'], d]}.to_h
+	data['teams'] = data['teams'].map {|d| [d['id'], d]}.to_h
+	# keys = Hash.new { |hash, key| hash[key] = [] }
+	# data['timeslice_events'].each do |d|
+	# 	keys[d['data_type']] = d['data'].keys
+	# end
+	# puts keys.to_json
 end
 
 
