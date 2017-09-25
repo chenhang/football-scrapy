@@ -5,8 +5,7 @@ DATA_PATH = 'tmp/out/*.csv'
 TIMESLICE_EVENT_KEYS = ["mins", "minsec", "player_id", "secs", "competition", "kickoff", "match_id"]
 
 def parse
-	data = {}
-	data['timeslice_events'] = []
+	data = Hash.new { |hash, key| hash[key] = [] }
 	Dir[DATA_PATH].each do |file_path|
 		data_type = file_path.split('/').last.split('.').first
 		CSV.foreach(file_path, headers: true) do |row|
@@ -14,13 +13,9 @@ def parse
 			if row_data['minsec']
 				data['timeslice_events'] << (TIMESLICE_EVENT_KEYS.map {|key| [key, row_data.delete(key)]}.to_h.merge('data' => row_data, 'data_type' => data_type))
 			else
-				data[data_type] = row_data
+				data[data_type] << row_data
 			end
 		end
-	end
-	data['timeslice_events'] = data['timeslice_events'].sort_by {|d| d['minsec'].to_i }
-	data['timeslice_events'].each do |d|
-		p d
 	end
 end
 
