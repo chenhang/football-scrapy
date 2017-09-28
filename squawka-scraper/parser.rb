@@ -1,7 +1,17 @@
 require 'csv'
 require 'active_support/all'
+# require 'pycall/import'
+# include PyCall::Import
+# pyimport 'matplotlib', as: :mp
+# mp.rcParams[:backend] = 'TkAgg' if mp.rcParams[:backend] == 'MacOSX'
+# pyimport 'matplotlib.pyplot', as: 'plt'
+
+# require "matplotlib"
+# Matplotlib.use("Qt5Agg")
+# require 'matplotlib/pyplot'
 
 DATA_PATH = 'tmp/out/*.csv'
+OUT_PATH = 'tmp/game_data.json'
 TIMESLICE_EVENT_KEYS = ["mins", "minsec", "player_id", "secs", "competition", "kickoff", "match_id"]
 
 def parse
@@ -25,6 +35,7 @@ def parse
 	# 	keys[d['data_type']] = d['data'].keys
 	# end
 	# puts keys.to_json
+	File.open(OUT_PATH, 'w') {|f| f.write(data.to_json)}
 end
 
 
