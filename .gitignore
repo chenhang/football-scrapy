@@ -20,3 +20,4 @@ parse_teams_stats_error.json
 *.pyc
 .WolframEngine/
 .sync/
+.vscode/
