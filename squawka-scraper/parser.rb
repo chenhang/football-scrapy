@@ -27,7 +27,7 @@ def parse
 			end
 		end
 	end
-
+	data['timeslice_events'] = data['timeslice_events'].sort_by {|d| d['minsec'].to_f }
 	data['players'] = data['players'].map {|d| [d['id'], d]}.to_h
 	data['teams'] = data['teams'].map {|d| [d['id'], d]}.to_h
 	# keys = Hash.new { |hash, key| hash[key] = [] }
