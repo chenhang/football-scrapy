@@ -1,4 +1,4 @@
-var url = 'game_data.json'
+var url = 'position_locations.json'
 var pause = false;
 var withShadow = false;
 var teams, home, away, players, home_players, away_players, events
@@ -16,39 +16,7 @@ var ball_radius = 4;
 function draw() {
     d3.json(url, function (error, data) {
         console.log(data)
-        teams = data.teams
-        home = Object.values(teams)[0]
-        away = Object.values(teams)[1]
-        index = 0
-        players = data.players
-        home_players = Object.values(players).filter(function(player) { return player.team_id == home.id & player.state == 'playing' })
-        away_players = Object.values(players).filter(function(player) { return player.team_id == away.id & player.state == 'playing'})
-        events = data.timeslice_events.sort(function(a, b) { return a.minsec - b.minsec })
-        // var intervalId = setInterval(function () {
-        //     if (next && index < events.length - 1) {
-        //         index++;
-        //         next = false;
-        //     }
-        //     if (prev && index > 1) {
-        //         index--;
-        //         prev = false;
-        //     }
-        //     var event = events[index];
-        //     if (event.data_type == 'extra_heat_maps') {
-        //         newPoint([event], teams[players[event.player_id].team_id].state, player_radius, teams[players[event.player_id].team_id].team_color);                            
-        //     }
-        //     if (pause) {
-        //         return
-        //     }
-        //     index++;
-        //     d3.timer.flush();
-        //     if (index >= events.length) {
-        //         index = 0;
-        //         clearInterval(intervalId);
-        //     }
-        // }, updatePeriod);
-        newPoint(home_players, 'home', player_radius, home.team_color);
-        newPoint(away_players, 'away', player_radius, away.team_color);
+        newPoint(data, 'home', player_radius, 'red');
     });
 
     function movePoints(data, className, radius) {
@@ -94,14 +62,18 @@ function draw() {
             .attr('r', function (d) {
                 return radius
             })
-            .style("fill-opacity", 1)
+            .style("fill-opacity", function(d){
+                return d.per * 2
+            })
+            .style("stroke-opacity", function(d){
+                return d.per * 2
+            })
             .style('fill', color)
-            .style("stroke-opacity", radius / 5)
             .attr("result", "offsetBlur")
             .attr("class", 'item')
-            .attr("id", function (d) {
-                return className + '-' + players[d.id].shirt_num
-            })
+            // .attr("id", function (d) {
+            //     return className + '-' + players[d.id].shirt_num
+            // })
             .classed(className, true);
     
         var text = court.selectAll('.dataText')
@@ -115,13 +87,13 @@ function draw() {
                 return d.y_loc/100 * height;
             })
             .text(function (d) {
-                return players[d.id].shirt_num;
+                return //d.per;
             })
             .attr("class", 'item')
             .classed(className + '-text', true)
-            .attr("id", function (d) {
-                return className + '-' + players[d.id].shirt_num
-            })
+            // .attr("id", function (d) {
+            //     return className + '-' + players[d.id].shirt_num
+            // })
             .attr({
                 "alignment-baseline": "middle",
                 "text-anchor": "middle",

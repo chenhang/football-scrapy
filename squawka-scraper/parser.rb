@@ -38,5 +38,22 @@ def parse
 	File.open(OUT_PATH, 'w') {|f| f.write(data.to_json)}
 end
 
+def positions
+  positions = JSON.parse(File.read('positions.json'))
+  results = []
+  positions.each do |k, v|
+    x, y = k.split(',', -1)
+    results << {x_loc: x, y_loc: y, size: v}
+  end
+  sizes = results.map {|d| d[:size]}
+  p sizes.sort
+  results.each do |d|
+    d[:per] = (d[:size] - sizes.min)/(sizes.max - sizes.min).to_f
+  end
+  File.open('position_locations.json', 'wb') do |file|
+    file.write(results.to_json)
+  end
+end
 
-parse
+
+positions
