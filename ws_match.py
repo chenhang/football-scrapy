@@ -16,7 +16,8 @@ import csv
 import re
 from math import *
 from bs4 import BeautifulSoup
-STATS_KEYS = [u'team', u'name', u'position', u'playMins', u'result', u'goals', u'goalsConceded', u'penaltyConceded', u'cornersTotal', u'aerialsWon', u'dribblesLost', u'shotsTotal', u'passesAccurate', u'tackleUnsuccesful', 
+STATS_KEYS = [u'team', u'name', u'position', u'playMins', u'result', u'goals', u'assists', u'goalsConceded', u'penaltyConceded', 
+                u'cornersTotal', u'aerialsWon', u'dribblesLost', u'shotsTotal', u'passesAccurate', u'tackleUnsuccesful', 
                 u'defensiveAerials', u'aerialsTotal', u'offensiveAerials', u'passesTotal', u'throwInsTotal', 
                 u'offsidesCaught', u'interceptions', u'ratings', u'touches', u'dispossessed', u'parriedSafe', u'claimsHigh', 
                 u'clearances', u'throwInAccuracy', u'collected', u'parriedDanger', u'possession', u'shotsOffTarget', u'dribblesAttempted', 
@@ -81,13 +82,18 @@ def parse_stats(file_name):
     data = load_json(file_name)
     stats = []
     penaltyConceded = {}
+    assists = {}
     team_fields = ['home', 'away']
+    goals = {}
+    goals_mins = {'home': [], 'away': []}
+    
     for event in data['events']:
         # penaltyConceded: 133
         if 133 in event.get(u'satisfiedEventsTypes', []):
             penaltyConceded[event[u'playerId']] = penaltyConceded.get(event['playerId'], 0) + 1
-    goals = {}
-    goals_mins = {'home': [], 'away': []}
+        # assist: 91
+        if 91 in event.get(u'satisfiedEventsTypes', []):
+            assists[event[u'playerId']] = assists.get(event['playerId'], 0) + 1
     for team in team_fields:
         # keys:
         # [u'averageAge', u'stats', u'name', u'incidentEvents', u'players', u'formations',
@@ -118,6 +124,7 @@ def parse_stats(file_name):
                     player_stats[key] = sum(values.values())
             player_stats['goals'] = goals.get(player['playerId'], 0)
             player_stats['penaltyConceded'] = penaltyConceded.get(player['playerId'], 0)
+            player_stats['assists'] = assists.get(player['playerId'], 0)
             if player.has_key(u'isFirstEleven'):
                 player_stats['playMins'] = player.get('subbedOutExpandedMinute', 90)
                 player_stats['goalsConceded'] = sum(x <= player.get('subbedOutExpandedMinute', data['expandedMaxMinute']) for x in goals_mins[other_team])
@@ -195,7 +202,7 @@ def calculate_scores(file_name):
                 shotsAccuracy = safe_division(float(line['shotsOnTarget']), float(line['shotsTotal']))
                 passesAccuracy = safe_division(float(line['passesAccurate']), float(line['passesTotal']))
                 errors = float(line['errors']) + float(line['penaltyConceded']) + float(line['dispossessed'])
-                print(name, position, errors)
+                cccPasses = float(line['passesKey']) + float(line['assists'])
                 if position in ['FW', 'FWL', 'FWR']:
                     result['shotsAccuracyRating'] = normdist(shotsAccuracy, 0.33, 0.21, True) * 0.2 * 100
                     result['aerialSuccessRating'] = normdist(aerialSuccess, 0.33, 0.21, True) * 0.1 * 100
@@ -326,13 +333,17 @@ league_urls = [
     "https://www.whoscored.com/Regions/155/Tournaments/13/Seasons/6826/Netherlands-Eredivisie",
 ]
 
-# driver = webdriver.Chrome()
-# driver.implicitly_wait(1000)
-# # get_match(driver, 'https://www.whoscored.com/Matches/1190270/Live/England-Premier-League-2017-2018-Liverpool-Manchester-United')
-# # get_match(driver, 'https://www.whoscored.com/Matches/1190303/Live/England-Premier-League-2017-2018-Everton-West-Ham')
-# get_match(driver, 'https://www.whoscored.com/Matches/1190311/Live/England-Premier-League-2017-2018-Stoke-Liverpool')
+options = webdriver.ChromeOptions()
+options.add_argument('headless')
+options.add_argument('window-size=1200x600')
 
-# driver.quit()
-# parse_match('test.html')
-# parse_stats('test.json')
+driver = webdriver.Chrome(executable_path="chromedriver", chrome_options=options)
+driver.implicitly_wait(1000)
+# get_match(driver, 'https://www.whoscored.com/Matches/1190270/Live/England-Premier-League-2017-2018-Liverpool-Manchester-United')
+get_match(driver, 'https://www.whoscored.com/Matches/1190315/Live/England-Premier-League-2017-2018-Arsenal-Manchester-United')
+# get_match(driver, 'https://www.whoscored.com/Matches/1190323/Live/England-Premier-League-2017-2018-Brighton-Liverpool')
+
+driver.quit()
+parse_match('test.html')
+parse_stats('test.json')
 calculate_scores('test.csv')
