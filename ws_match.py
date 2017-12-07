@@ -16,6 +16,7 @@ import csv
 import re
 from math import *
 from bs4 import BeautifulSoup
+
 STATS_KEYS = [u'team', u'name', u'position', u'playMins', u'result', u'goals', u'assists', u'goalsConceded', u'penaltyConceded', 
                 u'cornersTotal', u'aerialsWon', u'dribblesLost', u'shotsTotal', u'passesAccurate', u'tackleUnsuccesful', 
                 u'defensiveAerials', u'aerialsTotal', u'offensiveAerials', u'passesTotal', u'throwInsTotal', 
@@ -24,6 +25,7 @@ STATS_KEYS = [u'team', u'name', u'position', u'playMins', u'result', u'goals', u
                 u'shotsOnPost', u'dribblesWon', u'cornersAccurate', u'tackleSuccess', u'throwInsAccurate', u'dribbleSuccess', u'errors', 
                 u'aerialSuccess', u'shotsBlocked', u'tacklesTotal', u'tackleSuccessful', u'shotsOnTarget', u'dribbledPast', 
                 u'passesKey', u'foulsCommited', u'totalSaves', u'passSuccess']
+
 RATING_KEYS = ['team', 'name', 'position', 'adjustedRating', 'overallRating', 'parriedDangerRating', 'cccPassesRating', 'shotsAccuracyRating', 
                 'errorsRating', 'goalsConcededRating', 'dribbleSuccessRating', 'aerialSuccessRating', 'collectedRating', 
                 'totalSavesRating', 'dribbledPastRating', 'goalsRating', 'defenseThreeRatting', 'passesAccuracyRating']
@@ -61,14 +63,13 @@ def get_fixtures(driver, league_url):
     write_json(path, result)
 
 
-def parse_match(file_name):
-    html = open(file_name).read()
+def parse_match(html):
     soup = BeautifulSoup(html)
     script = soup.find('script', text=re.compile('matchCentreData'))
     json_text = re.search(r'matchCentreData\s+=\s+(\{.*?\});\n',
                           script.string, flags=re.DOTALL | re.MULTILINE).group(1)
     data = json.loads(json_text)
-    write_json('test.json', data)
+    return data
 
 
 def parse_stats(file_name):
@@ -132,7 +133,7 @@ def parse_stats(file_name):
                 player_stats['playMins'] = abs(data['expandedMaxMinute'] - player.get('subbedInExpandedMinute', data['expandedMaxMinute']))
                 player_stats['goalsConceded'] = sum(x >= player.get('subbedInExpandedMinute', data['expandedMaxMinute']) for x in goals_mins[other_team])
             stats.append(player_stats)
-    with open('test.csv', 'wb') as output_file:
+    with open(file_name.replace('.json', '.csv'), 'wb') as output_file:
         dict_writer = csv.DictWriter(
             output_file, fieldnames=STATS_KEYS, restval=0)
         dict_writer.writeheader()
@@ -209,40 +210,40 @@ def calculate_scores(file_name):
                     result['dribbleSuccessRating'] = normdist(float(line['dribbleSuccess']), 1, 1.42, True) * 0.05 * 100
                     result['passesAccuracyRating'] = normdist(passesAccuracy, 0.7, 0.13, True) * 0.2 * 100
                     result['defenseThreeRatting'] = normdist((defenseThree) * 90 / float(line['playMins']), 1.1, 0.7, True) * 0.05 * 100
-                    result['cccPassesRating'] = float(line['passesKey']) * 6.0 * 90 / float(line['playMins']) * 0.2
-                    result['goalsRating'] = float(line['goals']) * 17.0 * 90 / float(line['playMins']) * 0.2
+                    result['cccPassesRating'] = float(line['passesKey']) * 6.0 * 90 / float(line['playMins'])# * 0.2
+                    result['goalsRating'] = float(line['goals']) * 17.0 * 90 / float(line['playMins'])# * 0.2
                 elif position in ['AMC', 'SS', 'AML', 'AMR']:
                     result['shotsAccuracyRating'] = normdist(shotsAccuracy, 0.3, 0.09, True) * 0.05 * 100
                     result['aerialSuccessRating'] = normdist(aerialSuccess, 0.3, 0.09, True) * 0.05 * 100
                     result['dribbleSuccessRating'] = normdist(float(line['dribbleSuccess']), 2, 1.42, True) * 0.15 * 100
                     result['passesAccuracyRating'] = normdist(passesAccuracy, 0.8, 0.12, True) * 0.2 * 100
                     result['defenseThreeRatting'] = normdist((defenseThree) * 90 / float(line['playMins']), 1.5, 0.43, True) * 0.1 * 100
-                    result['cccPassesRating'] = float(line['passesKey']) * 5 * 90 / float(line['playMins']) * 0.3
-                    result['goalsRating'] = float(line['goals']) * 25 * 90 / float(line['playMins']) * 0.2
+                    result['cccPassesRating'] = float(line['passesKey']) * 5 * 90 / float(line['playMins'])# * 0.3
+                    result['goalsRating'] = float(line['goals']) * 25 * 90 / float(line['playMins'])# * 0.2
                 elif position in ['WF', 'IF']:
                     result['shotsAccuracyRating'] = normdist(shotsAccuracy, 0.33, 0.15, True) * 0.05 * 100
                     result['aerialSuccessRating'] = normdist(aerialSuccess, 0.3, 0.09, True) * 0.05 * 100
                     result['dribbleSuccessRating'] = normdist(float(line['dribbleSuccess']), 2, 1.42, True) * 0.15 * 100
                     result['passesAccuracyRating'] = normdist(passesAccuracy, 0.75, 0.08, True) * 0.15 * 100
                     result['defenseThreeRatting'] = normdist((defenseThree) * 90 / float(line['playMins']), 1.5, 0.75, True) * 0.1 * 100
-                    result['cccPassesRating'] = float(line['passesKey']) * 6.25 * 90 / float(line['playMins']) * 0.35
-                    result['goalsRating'] = float(line['goals']) * 20 * 90 / float(line['playMins']) * 0.15
+                    result['cccPassesRating'] = float(line['passesKey']) * 6.25 * 90 / float(line['playMins'])# * 0.35
+                    result['goalsRating'] = float(line['goals']) * 20 * 90 / float(line['playMins'])# * 0.15
                     result['errorsRating'] = 0.05 * 100 - errors * 25 / 90 * float(line['playMins']) 
                 elif position in ['CM', 'LCM', 'RCM', 'MC', 'ML', 'MR']:
                     result['aerialSuccessRating'] = normdist(aerialSuccess, 0.5, 0.21, True) * 0.05 * 100
                     result['dribbleSuccessRating'] = normdist(float(line['dribbleSuccess']), 3, 1.5, True) * 0.1 * 100
                     result['passesAccuracyRating'] = normdist(passesAccuracy, 0.83, 0.08, True) * 0.2 * 100
                     result['defenseThreeRatting'] = normdist((defenseThree) * 90 / float(line['playMins']), 3, 2.29, True) * 0.25 * 100
-                    result['cccPassesRating'] = float(line['passesKey']) * 5 * 90 / float(line['playMins']) * 0.25
-                    result['goalsRating'] = float(line['goals']) * 20 * 90 / float(line['playMins']) * 0.1
+                    result['cccPassesRating'] = float(line['passesKey']) * 5 * 90 / float(line['playMins'])# * 0.25
+                    result['goalsRating'] = float(line['goals']) * 20 * 90 / float(line['playMins'])# * 0.1
                     result['errorsRating'] = 0.1 * 100 - errors * 15 / 90 * float(line['playMins']) 
                     result['dribbledPastRating'] = 0.05 * 100 - float(line['dribbledPast']) * 5 * 90 / float(line['playMins'])
                 elif position in ['DM', 'DMC']:
                     result['aerialSuccessRating'] = normdist(aerialSuccess, 0.4, 0.21, True) * 0.1 * 100
                     result['passesAccuracyRating'] = normdist(passesAccuracy, 0.85, 0.08, True) * 0.2 * 100
                     result['defenseThreeRatting'] = normdist((defenseThree) * 90 / float(line['playMins']), 6.5, 3.6, True) * 0.3 * 100
-                    result['cccPassesRating'] = float(line['passesKey']) * 5 * 90 / float(line['playMins']) * 0.1
-                    result['goalsRating'] = float(line['goals']) * 25 * 90 / float(line['playMins']) * 0.05
+                    result['cccPassesRating'] = float(line['passesKey']) * 5 * 90 / float(line['playMins'])# * 0.1
+                    result['goalsRating'] = float(line['goals']) * 25 * 90 / float(line['playMins'])# * 0.05
                     result['errorsRating'] = 0.15 * 100 - errors * 25 / 90 * float(line['playMins'])
                     result['dribbledPastRating'] = 0.1 * 100 - (float(line['dribbledPast']) * 4 * 90 / float(line['playMins']))
                 elif position in ['DL', 'DR']:
@@ -250,16 +251,16 @@ def calculate_scores(file_name):
                     result['dribbleSuccessRating'] = normdist(float(line['dribbleSuccess']), 1, 0.7, True) * 0.15 * 100
                     result['passesAccuracyRating'] = normdist(passesAccuracy, 0.75, 0.08, True) * 0.1 * 100
                     result['defenseThreeRatting'] = normdist((defenseThree) * 90 / float(line['playMins']), 8, 3.6, True) * 0.3 * 100
-                    result['cccPassesRating'] = float(line['passesKey']) * 5 * 90 / float(line['playMins']) * 0.1
-                    result['goalsRating'] = float(line['goals']) * 25 * 90 / float(line['playMins']) * 0.05
+                    result['cccPassesRating'] = float(line['passesKey']) * 5 * 90 / float(line['playMins'])# * 0.1
+                    result['goalsRating'] = float(line['goals']) * 25 * 90 / float(line['playMins'])# * 0.05
                     result['errorsRating'] = 0.09 * 100 - errors * 15 * 90 / float(line['playMins'])
                     result['dribbledPastRating'] = 0.16 * 100 - (float(line['dribbledPast']) * 8 * 90 / float(line['playMins']))
                 elif position in ['DC']:
                     result['aerialSuccessRating'] = normdist(aerialSuccess, 0.5, 0.21, True) * 0.25 * 100
                     result['passesAccuracyRating'] = normdist(passesAccuracy, 0.8, 0.08, True) * 0.1 * 100
                     result['defenseThreeRatting'] = normdist((defenseThree) * 90 / float(line['playMins']), 10, 7, True) * 0.3 * 100
-                    result['cccPassesRating'] = float(line['passesKey'])  * 5 * 90 / float(line['playMins']) * 0.05
-                    result['goalsRating'] = float(line['goals']) * 15 * 90 / float(line['playMins']) * 0.05
+                    result['cccPassesRating'] = float(line['passesKey'])  * 5 * 90 / float(line['playMins'])# * 0.05
+                    result['goalsRating'] = float(line['goals']) * 15 * 90 / float(line['playMins'])# * 0.05
                     result['errorsRating'] = 0.15 * 100 - errors * 30 * 90 / float(line['playMins'])
                     result['dribbledPastRating'] = 0.1 * 100 - (float(line['dribbledPast']) * 8 * 90 / float(line['playMins']))
                 elif position in ['GK']:
@@ -273,19 +274,37 @@ def calculate_scores(file_name):
             result['adjustedRating'] = result['overallRating'] * 0.4
             result.update({'team': team, 'name': name, 'position': position})
             results.append(result)
-            with open('ratings.csv', 'wb') as output_file:
+            with open(file_name.replace('match.csv', 'rating.csv'), 'wb') as output_file:
                 dict_writer = csv.DictWriter(
                     output_file, fieldnames=RATING_KEYS, restval=0)
                 dict_writer.writeheader()
                 dict_writer.writerows(results)
 
-
+# Url sample
+# https://www.whoscored.com/Matches/1190270/Live/England-Premier-League-2017-2018-Liverpool-Manchester-United
 def get_match(driver, url):
+    season = '2017-2018'
     driver.get(url)
+    print(url)
     time.sleep(3)
-    path = ''
-    with open(path + 'test.html', 'w') as file:
-        file.write(driver.page_source)
+    print('Load HTML Done')
+    league = url.split('/')[-1].split(season)[0][:-1]
+    html = driver.page_source
+    data = parse_match(html)
+    print('Load JSON From HTML')
+    date = data['startDate'].split('T')[0]
+    home = data['home']['name']
+    away = data['away']['name']
+    path = os.path.join('matches', league, season, date, '-'.join([home, away]))
+    if not os.path.exists(path):
+        os.makedirs(path)
+    
+    with open(path + '/match.html', 'w') as file:
+        file.write(html)
+    write_json(path + '/match.json', data)
+    parse_stats(path + '/match.json')
+    calculate_scores(path + '/match.csv')
+    print('All Done')
 
 
 def element_visiable(driver, class_name):
@@ -310,14 +329,6 @@ def ajax_click(driver, element):
                                        "Timeout waiting for page to load")
     time.sleep(1)
 
-
-def root_path_for(league):
-    path = 'matches/' + league + '/'
-    if not os.path.exists(path):
-        os.makedirs(path)
-    return path
-
-
 BASE_URL = "https://www.whoscored.com"
 pl_url = "https://www.whoscored.com/Regions/252/Tournaments/2/England-Premier-League"
 ia_url = "https://www.whoscored.com/Regions/108/Tournaments/5/Italy-Serie-A"
@@ -339,11 +350,12 @@ options.add_argument('window-size=1200x600')
 
 driver = webdriver.Chrome(executable_path="chromedriver", chrome_options=options)
 driver.implicitly_wait(1000)
-# get_match(driver, 'https://www.whoscored.com/Matches/1190270/Live/England-Premier-League-2017-2018-Liverpool-Manchester-United')
-get_match(driver, 'https://www.whoscored.com/Matches/1190315/Live/England-Premier-League-2017-2018-Arsenal-Manchester-United')
-# get_match(driver, 'https://www.whoscored.com/Matches/1190323/Live/England-Premier-League-2017-2018-Brighton-Liverpool')
-
+# # get_match(driver, 'https://www.whoscored.com/Matches/1190270/Live/England-Premier-League-2017-2018-Liverpool-Manchester-United')
+# # get_match(driver, 'https://www.whoscored.com/Matches/1190315/Live/England-Premier-League-2017-2018-Arsenal-Manchester-United')
+get_match(driver, 'https://www.whoscored.com/Matches/1238289/Live/Europe-UEFA-Champions-League-2017-2018-Liverpool-Spartak-Moscow')
+# # get_match(driver, 'https://www.whoscored.com/Matches/1190323/Live/England-Premier-League-2017-2018-Brighton-Liverpool')
+# get_fixtures(driver, league_urls[0])
 driver.quit()
-parse_match('test.html')
-parse_stats('test.json')
-calculate_scores('test.csv')
+# parse_match('test.html')
+# parse_stats('test.json')
+# calculate_scores('test.csv')
