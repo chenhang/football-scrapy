@@ -15,8 +15,10 @@ import json
 import csv
 import re
 from math import *
+from datetime import datetime
 from bs4 import BeautifulSoup
 
+BASE_URL = 'https://www.whoscored.com'
 STATS_KEYS = [u'team', u'name', u'position', u'playMins', u'result', u'goals', u'assists', u'goalsConceded', u'penaltyConceded', 
                 u'cornersTotal', u'aerialsWon', u'dribblesLost', u'shotsTotal', u'passesAccurate', u'tackleUnsuccesful', 
                 u'defensiveAerials', u'aerialsTotal', u'offensiveAerials', u'passesTotal', u'throwInsTotal', 
@@ -30,6 +32,9 @@ RATING_KEYS = ['team', 'name', 'position', 'adjustedRating', 'overallRating', 'p
                 'errorsRating', 'goalsConcededRating', 'dribbleSuccessRating', 'aerialSuccessRating', 'collectedRating', 
                 'totalSavesRating', 'dribbledPastRating', 'goalsRating', 'defenseThreeRatting', 'passesAccuracyRating']
 
+RATING_CONFIG = {
+    
+}
 def load_json(file_name):
     with open(file_name) as json_data:
         d = json.load(json_data)
@@ -42,25 +47,62 @@ def write_json(file_name, json_data):
         return json_data
 
 
-def get_fixtures(driver, league_url):
+# script = soup.find('script', text=re.compile('calendarParameter'))
+# json_text = re.search(r'calendarParameter\),\s+(\[\[(.|\n)*\])',
+#                       script.string, flags=re.DOTALL | re.MULTILINE).group(1).replace("'", '"').rstrip('\r\n')
+def get_fixtures(driver, league_url, only_now=True):
     driver.get(league_url)
     html = driver.page_source
     fixture_url = driver.find_elements_by_xpath(
         '//*[@id="sub-navigation"]/ul/li[2]/a')[0].get_attribute('href')
     driver.get(fixture_url)
-    html = driver.page_source
-    soup = BeautifulSoup(html)
-    script = soup.find('script', text=re.compile('calendarParameter'))
-    json_text = re.search(r'calendarParameter\),\s+(\[\[(.|\n)*\])',
-                          script.string, flags=re.DOTALL | re.MULTILINE).group(1)
-
-    data = json.loads(json_text.replace("'", '"'))
-    result = {}
-    for item in data:
-        result[item[0]] = item
-    path = os.path.join(root_path_for(
-        league_url.split('/')[-1]), 'fixtures.json')
-    write_json(path, result)
+    print(fixture_url)
+    fixtures = {}
+    total = len(fixtures)
+    season = '-'.join(fixture_url.split('-')[-2:])
+    while True:
+        html = driver.page_source
+        soup = BeautifulSoup(html)
+        table = soup.find('table', id='tournament-fixture')
+        trs = table.find_all('tr')
+        date = None
+        for tr in trs:
+            print(tr.text)
+            if 'rowgroupheader' in tr.get('class'):
+                date = str(datetime.strptime(tr.text.split(', ')[-1], '%b %d %Y').date())
+            else:
+                id = tr.attrs['data-id']
+                print(id)
+                if fixtures.has_key(id) and fixtures[id].get('status', 0) == 'FT':
+                    continue
+                status = tr.find('td', class_='status').text
+                time_str = tr.find('td', class_='time').text
+                home = tr.find('td', class_='home').text
+                home_url = tr.find('td', class_='home').find('a').get('href')
+                away = tr.find('td', class_='away').text
+                away_url = tr.find('td', class_='away').find('a').get('href')
+                url = tr.find('td', class_='result').find('a').get('href')
+                result = tr.find('td', class_='result').text
+                fixtures[id] = {'status': status, 'time': time_str, 'date': date, 'season': season, 
+                                'home': home, 'home_url': home_url, 'away': away, 
+                                'away_url': away_url, 'result': result, 'url': url, 'id': id}
+        if len(fixtures) == total:
+            break
+        total = len(fixtures)
+        time.sleep(3)
+        print('Current Counts:', total)
+        elements = driver.find_elements_by_xpath(
+            '//*[@id="date-controller"]/a[1]')
+        if len(elements) == 0:
+            break
+        prev = driver.find_elements_by_xpath(
+            '//*[@id="date-controller"]/a[1]')[0]
+        ajax_click(driver, prev)
+    path = os.path.join('matches', 
+        league_url.split('/')[-1], season)
+    if not os.path.exists(path):
+        os.makedirs(path)
+    write_json(path + '/fixtures.json', fixtures)
 
 
 def parse_match(html):
@@ -283,11 +325,11 @@ def calculate_scores(file_name):
 # Url sample
 # https://www.whoscored.com/Matches/1190270/Live/England-Premier-League-2017-2018-Liverpool-Manchester-United
 def get_match(driver, url):
-    season = '2017-2018'
     driver.get(url)
     print(url)
     time.sleep(3)
     print('Load HTML Done')
+    season = re.search(r"2[0-9]{3}-2[0-9]{3}",url).group(0)
     league = url.split('/')[-1].split(season)[0][:-1]
     html = driver.page_source
     data = parse_match(html)
@@ -324,7 +366,8 @@ def ajax_complete(driver):
 
 
 def ajax_click(driver, element):
-    element.click()
+    driver.execute_script("arguments[0].click();", element)
+
     WebDriverWait(driver, 10000).until(ajax_complete,
                                        "Timeout waiting for page to load")
     time.sleep(1)
@@ -344,18 +387,40 @@ league_urls = [
     "https://www.whoscored.com/Regions/155/Tournaments/13/Seasons/6826/Netherlands-Eredivisie",
 ]
 
-options = webdriver.ChromeOptions()
-options.add_argument('headless')
-options.add_argument('window-size=1200x600')
+def get_all_fixtures(driver, league_urls):
+    for league_url in league_urls:
+        get_fixtures(driver, league_url)
+def get_all_matches(driver):
+    for dir_name in os.listdir('matches'):
+        league_path = os.path.join('matches', dir_name)
+        if os.path.isdir(league_path):
+            for season in os.listdir(league_path):
+                season_path = os.path.join(league_path, season)
+                if os.path.isdir(season_path):
+                    print season_path
+                    fixtures = load_json(os.path.join(season_path, 'fixtures.json'))
+                    log_path = os.path.join(season_path, 'log.json')
+                    logs = []
+                    if os.path.exists(log_path):
+                        logs = load_json(log_path)
+                    for id, match in fixtures.iteritems():
+                        url = BASE_URL+match['url']
+                        if id not in logs and match.get('stats', 0) == 'FT' or match.get('status', 0) == 'FT':
+                            print(url, 'Start')
+                            start_time = time.time()
+                            get_match(driver, url)
+                            time.sleep(5)
+                            print("Match cost: --- %s seconds ---" % (time.time() - start_time))
+                            print(url, 'Done')
+                            logs.append(id)
+                            write_json(log_path, logs)
+                         
 
+
+options = webdriver.ChromeOptions()
+# options.add_argument('headless')
+# options.add_argument('window-size=1200x600')
 driver = webdriver.Chrome(executable_path="chromedriver", chrome_options=options)
-driver.implicitly_wait(1000)
-# # get_match(driver, 'https://www.whoscored.com/Matches/1190270/Live/England-Premier-League-2017-2018-Liverpool-Manchester-United')
-# # get_match(driver, 'https://www.whoscored.com/Matches/1190315/Live/England-Premier-League-2017-2018-Arsenal-Manchester-United')
-get_match(driver, 'https://www.whoscored.com/Matches/1238289/Live/Europe-UEFA-Champions-League-2017-2018-Liverpool-Spartak-Moscow')
-# # get_match(driver, 'https://www.whoscored.com/Matches/1190323/Live/England-Premier-League-2017-2018-Brighton-Liverpool')
-# get_fixtures(driver, league_urls[0])
+driver.implicitly_wait(100)
+get_all_matches(driver)
 driver.quit()
-# parse_match('test.html')
-# parse_stats('test.json')
-# calculate_scores('test.csv')
